@@ -124,7 +124,7 @@ void my_threshold(int, void *)
 		Scalar color_R = Scalar(0, 0, 255);
 		Scalar color = Scalar(255, 0, 0);
 		drawContours(drawing, contours, i, color_R, 1, 8, vector<Vec4i>(), 0, Point());
-		ellipse(drawing, minEllipse[i], color, 1, 8);
+		//ellipse(drawing, minEllipse[i], color, 1, 8);
 		cout << (i + 1) << "   minor axis:  " << setprecision(6) << minEllipse[i].size.width << "  long axis:  " << setprecision(6) << minEllipse[i].size.height << "  roundness:" << setprecision(6) << roundness[i] << endl;
 	}
 	cout << endl << endl;
