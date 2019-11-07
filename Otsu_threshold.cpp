@@ -1,3 +1,4 @@
+//大津法，自适应阈值分割
 #include<iostream>
 #include<opencv2/opencv.hpp>
 
