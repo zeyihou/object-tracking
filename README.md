@@ -1,3 +1,2 @@
 # opencv
-opencv
-练习代码
+object tracking入门练习
