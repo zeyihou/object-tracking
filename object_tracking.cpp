@@ -3,16 +3,21 @@
 #include<vector>
 #include<string>
 #include<opencv2/opencv.hpp>
-#include<math.h>
+#include<cmath>
 
 using namespace std;
 using namespace cv;
 
-//typedef vector<vector<Point>> CON;  //轮廓类型
-//typedef vector<RotatedRect>  MINELLIPSE;   ////RotatedRect是一个存储旋转矩形的类，用于存储椭圆拟合函数返回的结果
-
 //函数声明
-void my_segmentation(string im_name, Mat im_gray, Mat im_dst, vector<vector<Point>> contours, vector<RotatedRect> im_minEllipse, vector<double> im_roundness);  //分割函数
+Mat my_segmentation(string im_name, Mat &im_gray, Mat &im_dst, vector<vector<Point>> &contours, vector<RotatedRect> &im_minEllipse, vector<double> &im_roundness);  //分割函数
+void hungarian();  //匈牙利算法，二部图匹配
+bool find(int i,int aft_num);
+void zero(vector<int> x)
+{
+	vector<int>::iterator it;
+	for (it = x.begin(); it != x.end(); it++)
+		*it = 0;
+}
 
 //全局变量
 Mat pre, pre_gray, pre_dst;  
@@ -25,13 +30,28 @@ vector<RotatedRect> aft_minellipse;
 vector<double> pre_roundness;   //圆度
 vector<double> aft_roundness;
 
+//匈牙利算法所需数据结构
+vector<vector<int>> connect;    //关系矩阵
+vector<int> matching;          //匹配结果
+vector<int> used;
+int matching_sum = 0;    //匹配成功的数目
+
 int thr = 40;  //初始化阈值
-#define IM_SIZE 5   //筛选尺寸
-#define IM_ROUNDNESS 0.4   //筛选圆度
+#define IM_SIZE 5   //分割时，筛选尺寸
+#define IM_ROUNDNESS 0.4   //分割时，筛选圆度
+
+#define H_JUDGE 10   //二部图匹配时，差值条件
+#define W_JUDGE 10
+#define X_POINT 10
+#define Y_POINT 10
+#define ROUNDNESS 10
+#define NO_MATCHING 10000   //足够大的值，标志未匹配
 
 int main()
 {
-	pre = imread("D:\\test.jpg");
+	pre = imread("D:\\pre.jpg");
+	//cout<<"hhhhhhhhhhhh" << pre.rows<<endl;
+	//cout << "lllllllllllll" << pre.cols<<endl;
 	if (pre.empty())
 	{
 		//检查是否读取图像
@@ -44,7 +64,7 @@ int main()
 	{
 		cvtColor(pre, pre_gray, COLOR_BGR2GRAY);   //转换为灰度图
 	}
-	aft = imread("D:\\test_0.jpg");
+	aft = imread("D:\\aft.jpg");
 	if (aft.empty())
 	{
 		//检查是否读取图像
@@ -58,15 +78,18 @@ int main()
 		cvtColor(aft, aft_gray, COLOR_BGR2GRAY);   //转换为灰度图
 	}
 	
-	my_segmentation("pre",pre_gray,pre_dst,pre_contours,pre_minellipse,pre_roundness);  //分割
-	my_segmentation("aft",aft_gray,aft_dst,aft_contours,aft_minellipse,aft_roundness);
+	pre_dst = my_segmentation("pre", pre_gray, pre_dst, pre_contours, pre_minellipse, pre_roundness);  //分割
+	aft_dst = my_segmentation("aft", aft_gray, aft_dst, aft_contours, aft_minellipse, aft_roundness);
 
+	hungarian();    //匈牙利算法二部图匹配
+	cout << "匹配数目：" << matching_sum;
 	
 	waitKey(0);
 	return 0;
 }
 
-void my_segmentation(string im_name,Mat im_gray, Mat im_dst, vector<vector<Point>> contours, vector<RotatedRect> im_minEllipse, vector<double> im_roundness)
+
+Mat my_segmentation(string im_name,Mat &im_gray, Mat &im_dst, vector<vector<Point>> &contours, vector<RotatedRect> &im_minEllipse, vector<double> &im_roundness)
 {
 	//hierarchy是一个向量，向量内每个元素都是一个包含4个int型的数组。向量hierarchy内的元素和轮廓向量contours内的元素是一一对应的，向量的容量相同。
 	//hierarchy内每个元素的4个int型变量是hierarchy[i][0] ~hierarchy[i][3]，分别表
@@ -101,10 +124,10 @@ void my_segmentation(string im_name,Mat im_gray, Mat im_dst, vector<vector<Point
 		if (contours[i].size() > 5)          //至少6个点画椭圆
 		{
 			im_minEllipse[i] = fitEllipse(contours[i]);    //最小外接椭圆
+			im_roundness[i] = (4 * CV_PI * contourArea(contours[i])) / (arcLength(contours[i], true)  *arcLength(contours[i], true));//圆度
 		}
 		else
 			cout << "像素点数量<5"<<endl;
-		im_roundness[i] = (4 * CV_PI * contourArea(contours[i])) / ( arcLength(contours[i], true)  *arcLength(contours[i], true)  );//圆度
 	}
 
 	//..按条件筛选。。。。。。。。。。。。。。。。。。。。。。
@@ -137,8 +160,88 @@ void my_segmentation(string im_name,Mat im_gray, Mat im_dst, vector<vector<Point
 		cout << (i + 1) <<im_minEllipse[i].center <<"   minor axis:  " << setprecision(6) << im_minEllipse[i].size.width << "  long axis:  " << setprecision(6) << im_minEllipse[i].size.height << "  roundness:" << setprecision(6) << im_roundness[i] << endl;
 	}
 	cout << endl << endl;
-
 	/// 在窗体中显示结果
 	namedWindow(im_name, WINDOW_AUTOSIZE);
 	imshow(im_name, drawing);
+	return drawing;
+}
+
+bool find(int i, int aft_num)   //对pre中的每一个 i 进行查找
+{
+	int j;
+	for (j = 0; j < aft_num; j++)  //遍历aft中的每一个 j
+	{
+		if (connect[i][j] == 1 && used[j] == 0)
+			//如果有连线并且 j 还没有标记过(这里标记的意思是这次查找曾试图改变过该目标的归属问题，但是没有成功，所以就不用瞎费工夫了）
+		{
+			used[j] = 1;   //试图进行一次查找
+			if (matching[j] == NO_MATCHING || find(matching[j], aft_num) )  //名花无主 或者 对现在已经匹配的 matching[j] 能腾出个位置来，这里使用递归
+			{
+				matching[j] = i;    //将  pre中这个i 匹配给  当前的j
+				return true;    //匹配成功！
+			}
+		}
+	}
+	return false;  //遍历完所有的aft中的j，都没有找到和当前传入的pre中的i匹配的目标，失败！
+}
+
+void hungarian()
+{
+	//初始化：改变尺寸，初值赋 0
+	matching_sum = 0;
+	int pre_num = pre_minellipse.size();
+	int aft_num = aft_minellipse.size();
+	used.resize(aft_num);
+    zero(used);
+	//用 NO_MATCHING 初始化 matching
+	matching.resize(aft_num);
+	vector<int>::iterator it;
+	for (it = matching.begin(); it != matching.end(); it++)
+		*it = NO_MATCHING;
+	//关系矩阵 connect[][] 初始化，根据   "设定标准"   考虑是否可以匹配
+	vector<int> temp(aft_num);  //临时变量，初始化使用
+	zero(temp);
+	connect.resize(pre_num, temp);
+	for (int a = 0; a < pre_num; a++)
+	{ 
+		for (int b = 0; b < aft_num; b++)
+		{
+			if (abs(pre_minellipse[a].size.height - aft_minellipse[b].size.height) <= H_JUDGE && abs(pre_minellipse[a].size.width - aft_minellipse[b].size.width) <= W_JUDGE &&
+				abs(pre_minellipse[a].center.x - aft_minellipse[b].center.x) <= X_POINT && abs(pre_minellipse[a].center.y - aft_minellipse[b].center.y) <= Y_POINT &&
+				abs(pre_roundness[a]-aft_roundness[b])<=ROUNDNESS  )  //judge
+				connect[a][b] = 1;
+		}
+	}
+
+	//显示connect矩阵
+	cout << endl << endl << "#################################" << endl;
+	for (int a = 0; a < pre_num; a++)
+	{
+		for (int b = 0; b < aft_num; b++)
+		{
+			cout << connect[a][b];
+		}
+		cout << endl;
+	}
+
+	for (int i = 0; i < pre_num; i++)   //对于pre中每一个目标 i 进行处理
+	{
+		zero(used);  //used 在每一步中清空
+		if (find(i,aft_num))
+			matching_sum += 1;    //匹配成功的数目+1
+	}
+
+	//画出tracklets
+	Scalar color = Scalar(0, 255, 0);
+	for (int i = 0; i< matching.size(); i++)
+	{
+		cout << matching[i] << endl;
+		if (matching[i] != NO_MATCHING)
+		{
+			line(pre_dst, pre_minellipse[matching[i]].center, aft_minellipse[i].center, color, 1, 8);
+			//line(pre_dst, Point(0,0), Point(400,400), color, 1, 8);
+		}
+	}
+	imshow("pre", pre_dst);
+
 }
