@@ -75,10 +75,10 @@ void my_threshold(int, void *)
 		if (contours[i].size() > 5)          //至少6个点画椭圆
 		{
 			minEllipse[i] = fitEllipse(contours[i]);    //最小外接椭圆
+			roundness[i] = (4 * CV_PI * contourArea(contours[i])) / ( arcLength(contours[i], true)  *arcLength(contours[i], true)  );//圆度
 		}
 		else
 			cout << "像素点数量<5"<<endl;
-		roundness[i] = (4 * CV_PI * contourArea(contours[i])) / ( arcLength(contours[i], true)  *arcLength(contours[i], true)  );//圆度
 	}
 
 	//未筛选前——画图
