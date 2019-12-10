@@ -91,11 +91,11 @@ int main()
 
 	pre_dst = my_segmentation("pre", pre_gray, pre_dst, pre_contours, pre_minellipse, pre_roundness);  //分割
 	aft_dst = my_segmentation("aft", aft_gray, aft_dst, aft_contours, aft_minellipse, aft_roundness);
-	waitKey(0);
+	
 	cout<<KM_Hungarian();    //匈牙利算法二部图匹配
 	cout << "匹配权值和：" << matching_sum;
-//	draw_tracklets();
-
+	draw_tracklets();
+	waitKey(0);
 	return 0;
 }
 
@@ -179,6 +179,9 @@ Mat my_segmentation(string im_name, Mat &im_gray, Mat &im_dst, vector<vector<Poi
 
 bool find(int i,int aft_num)   //对pre中的每一个 i 进行查找
 {
+	//if (ex_pre[i]<0)
+	//	return false;
+
 	vis_pre[i] = true;
 
 	for (int j = 0; j < aft_num; j++) 
@@ -232,8 +235,8 @@ int KM_Hungarian()
 	{
 		for (int b = 0; b < aft_num; b++)
 		{
-			connect[a][b] = abs(pre_minellipse[a].center.x - aft_minellipse[b].center.x) * (-1);
-			//connect[a][b] = rand()%2;
+			connect[a][b] = sqrt( pow(pre_minellipse[a].center.y - aft_minellipse[b].center.y, 2) + pow(pre_minellipse[a].center.x - aft_minellipse[b].center.x, 2) );
+			//connect[a][b] = 2.123 ;
 		}
 	}
 	//显示connect矩阵
@@ -242,7 +245,7 @@ int KM_Hungarian()
 	{
 		for (int b = 0; b < aft_num; b++)
 		{
-			cout << connect[a][b];
+			cout << connect[a][b]<<" ";
 		}
 		cout << endl;
 	}
