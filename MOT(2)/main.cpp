@@ -44,7 +44,7 @@ vector<RotatedRect> trace_minellipse;     //存储第一幅图像的信息
 //vector<int> matching;          //记录匹配结果，如果没有则为-1
 vector<vector<int>> matching(IM_NUM-1);    //matching[i]  记录第i幅图片和它后面一张的匹配结果
 //vector<vector<int>> origin(IM_NUM-1);       //每个轨迹段的开始点标志
-Scalar color = Scalar(0, 255, 0);   //轨迹颜色
+
 struct tracklet      //轨迹段
 {
 	int t_s;   //开始帧   matching的下标
@@ -54,16 +54,13 @@ struct tracklet      //轨迹段
 	double len = 0;  //轨迹长度
 	double v = 0;   //运动速度
 };
-vector<vector<tracklet>> tracklets(IM_NUM);   //存储第一轮逐帧匹配后的tracklets，tracklets[0]代表第一帧为起点的所有tracklets
-//vector<tracklet> tracklets;
-vector<tracklet> pre_tracklets, aft_tracklets;  
-
+vector<vector<tracklet>> tracklets_formulate(IM_NUM);   //存储第一轮逐帧匹配后的tracklets，tracklets[0]代表第一帧为起点的所有tracklets
+vector<tracklet> tracklets;
 
 int main()
 {
 	form_tracklets();
 	association();
-
 
 	waitKey(0);
 	return 0;
@@ -150,6 +147,7 @@ void form_tracklets()
 
 		//Hungarian 匹配
 		HungAlgo.Solve(connect, matching[i - 1]);
+
 		//*********************************************************************
 		//设置阈值，将距离权值较大的两个连接点强制断开,得到reliable的tracklets
 		//*********************************************************************
@@ -173,6 +171,7 @@ void form_tracklets()
 			}
 		}
 
+		Scalar color = Scalar(0, 255, 0);   //轨迹颜色
 		for (int k = 0; k < matching[i - 1].size(); k++)             //根据 matching[] 结果画线
 		{
 			//cout << matching[i-1][k] << endl;
@@ -225,7 +224,8 @@ void association()
 					cur = matching[tem.t_e][cur];
 				}
 				tem.v = tem.len / sum;
-				tracklets[i - 1].push_back(tem);  //添加一条轨迹
+				tracklets_formulate[i - 1].push_back(tem);
+				tracklets.push_back(tem);  //添加一条轨迹
 			}
 
 		}
@@ -234,12 +234,58 @@ void association()
 	//******************************
 	//tracklets之间进行hungarian
 	//******************************
-	//
-	int i=0;
-	i += 1;
+	vector<double> temp;  //临时变量，初始化使用
+	temp.resize(tracklets.size());
+	vector<vector<double>> track_connect;   //权值矩阵
+	track_connect.resize(tracklets.size(), temp);
+
+	const int INF = 1000;  //无穷大
+	const int LENGTH = 50;
+
+	for (int i = 0; i < tracklets.size(); i++)
+	{
+		for (int j = 0; j < tracklets.size(); j++)
+		{
+			RotatedRect pre = minellipse[tracklets[i].t_e].obj_minellipse[tracklets[i].e_ID];
+			RotatedRect aft = minellipse[tracklets[j].t_s].obj_minellipse[tracklets[j].s_ID];
+
+			if ((tracklets[i].t_e < tracklets[j].t_s) && sqrt(pow(pre.center.y - aft.center.y, 2) + pow(pre.center.x - aft.center.x, 2))<LENGTH)
+			//if ((tracklets[i].t_e < tracklets[j].t_s)  )             //条件
+			{
+				track_connect[i][j] = abs(tracklets[i].v - tracklets[j].v);
+			}
+			else
+			{
+				track_connect[i][j] = INF;     //为不可能的tracklets匹配，设置一个较大的权值
+			}
+		}
+	}
+	
+	//Hungarian 匹配
+	HungarianAlgorithm HungAlgo;
+	vector<int> track_matching(tracklets.size()-1);    //track_matching
+	HungAlgo.Solve(track_connect, track_matching);
 
 
+	for (int i = 0; i < track_matching.size(); i++)   //筛选
+	{
+		if (track_connect[i][track_matching[i]] == INF)
+		{
+			track_matching[i] = -1;                                  //断开
+		}
+	}
+	
+	Scalar color = Scalar(0, 0, 255);   //轨迹颜色
+	for (int k = 0; k < track_matching.size(); k++)             //根据 track_matching[] 结果画线
+	{
+		if (track_matching[k] != -1)
+		{
+			line(trace_draw, minellipse[tracklets[k].t_e].obj_minellipse[tracklets[k].e_ID].center, minellipse[tracklets[track_matching[k]].t_s].obj_minellipse[tracklets[track_matching[k]].s_ID].center, color, 1, 8);
+		}
+	}
 
+	namedWindow("trace", WINDOW_AUTOSIZE);
+	imshow("trace", trace_draw);
 
 	return;
 	
