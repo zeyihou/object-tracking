@@ -1,4 +1,4 @@
-﻿#include <iostream>
+#include <iostream>
 #include <iomanip>
 #include <vector>
 #include <string>
@@ -20,11 +20,11 @@ int main()
 {
 	tracker trackerAlgo;
 	trackerAlgo.form_tracklets();   //形成轨迹段tracklets
-	trackerAlgo.association();      //tracklets之间相连接
+	trackerAlgo.form_trajectory();      //tracklets之间相连接
 	//waitKey(0);
 
 	MatPlot PlotAlgo;
-	PlotAlgo.Plot_trajectory();
+	//PlotAlgo.Plot_trajectory_3D();
 	
 	return 0;
 }
