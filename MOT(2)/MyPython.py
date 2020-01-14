@@ -11,21 +11,16 @@ def plot_3d(arg_X,arg_Y,arg_T) :
     print("[DONE] call python success!")
     fig = plt.figure()
     ax = Axes3D(fig)
-    #ax = fig.gca(projection='3d')
     ax.set_title("3D_trajectory")
-    ax.set_xlabel("X")
-    ax.set_ylabel("Y")
+    ax.set_xlabel("Y")     #opencvåæ ‡åŸç‚¹åœ¨å·¦ä¸Šè§’ï¼Œä¸ºæ˜¾ç¤ºæ–¹ä¾¿ï¼Œå°†X,Yè½´äº’æ¢ç”»å›¾
+    ax.set_ylabel("X")
     ax.set_zlabel("T")
     for index in range(len(arg_T)):
         print(arg_T[index])
-        x=arg_X[index]     #·Ö±ğÉú³ÉÈı¸öÎ¬¶ÈÊı¾İ
+        x=arg_X[index]     #åˆ†åˆ«ç”Ÿæˆä¸‰ä¸ªç»´åº¦æ•°æ®
         y=arg_Y[index]
         t=arg_T[index]
-        ax.plot(x, y, t, 'bo--')
-    #x2=arg_X[0]     #·Ö±ğÉú³ÉÈı¸öÎ¬¶ÈÊı¾İ
-    #y2=arg_Y[0]
-    #t2=arg_T[0]
-    #ax.plot(x2, y2, t2, 'bo--')
+        ax.plot(y, x, t, '-')
     plt.show()
     return arg_X
 
