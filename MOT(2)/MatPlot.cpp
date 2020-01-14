@@ -8,99 +8,8 @@ void MatPlot::Plot_trajectory_3D(vector<vector<TimePosition>> plot_data)
 {
 	//cout << plot_data[10][20].time<<endl;
 	//cout << plot_data[10][20].position.x << endl;
-
-	//µ÷ÓÃpython½Å±¾
-	Py_Initialize(); /*³õÊ¼»¯python½âÊÍÆ÷,¸æËß±àÒëÆ÷ÒªÓÃµÄpython±àÒëÆ÷*/
-	if (!Py_IsInitialized())
-	{
-		cout << "³õÊ¼»¯Ê§°Ü£¡" << endl;
-		Py_Finalize();
-	}
-	PyObject * pModule = NULL;
-	PyObject * pFunc = NULL;
-
-	PyRun_SimpleString("import sys");     //Ìí¼ÓInsertÄ£¿éÂ·¾¶  
-	PyRun_SimpleString("sys.path.append('./')");
-	pModule = PyImport_ImportModule("MyPython");      //PythonÎÄ¼şÃû  
-
-	if (!pModule) // ¼ÓÔØÄ£¿éÊ§°Ü
-	{
-		cout << "[ERROR] pyÎÄ¼şµ¼ÈëÊ§°Ü£¡ Python get module failed." << endl;
-		return;
-	}
-	pFunc = PyObject_GetAttrString(pModule, "plot_3d");  //PythonÎÄ¼şÖĞµÄº¯ÊıÃû
-	if (!pModule) // ¼ÓÔØÄ£¿éÊ§°Ü
-	{
-		cout << "[ERROR] º¯Êıµ¼ÈëÊ§°Ü£¡ Python get function failed." << endl;
-		return;
-	}
-	 
-	//´´½¨²ÎÊı:  
-	PyObject* Args_X = PyTuple_New(plot_data.size());    //¶şÎ¬Ôª×é
-	PyObject* Args_Y = PyTuple_New(plot_data.size());
-	PyObject* Args_T = PyTuple_New(plot_data.size());
-	for (int i = 0; i < plot_data.size(); i++)
-	{
-		PyObject* temp_X = PyTuple_New(plot_data[i].size());     //Ôª×é
-		PyObject* temp_Y = PyTuple_New(plot_data[i].size());
-		PyObject* temp_T = PyTuple_New(plot_data[i].size());
-		for (int j = 0; j < plot_data[i].size(); j++)
-		{
-			PyTuple_SetItem(temp_X, j, Py_BuildValue("d", plot_data[i][j].position.x));      //Py_BuildValue°Ñc++Êı¾İ·â×°³ÉpythonÊı¾İ
-			PyTuple_SetItem(temp_Y, j, Py_BuildValue("d", plot_data[i][j].position.y));
-			PyTuple_SetItem(temp_T, j, Py_BuildValue("i", plot_data[i][j].time));
-		}
-		PyTuple_SetItem(Args_X, i, temp_X);
-		PyTuple_SetItem(Args_Y, i, temp_Y);
-		PyTuple_SetItem(Args_T, i, temp_T);
-	}
-
-	PyObject* Args = PyTuple_New(3);  //´«¸øpythonµÄÈı¸ö²ÎÊı·â×°³ÉÒ»¸öÔª×æ£¬¶ÔÓ¦pythonÖĞº¯Êı£¬ÒªÇó²ÎÊı¸öÊıºÍÔª×æÔªËØÊıÄ¿ÏàÍ¬£¬·ñÔòSystemError£¡
-	PyTuple_SetItem(Args, 0, Args_X);
-	PyTuple_SetItem(Args, 1, Args_Y);
-	PyTuple_SetItem(Args, 2, Args_T);
-
-	PyObject* result = NULL;
-	result = PyEval_CallObject(pFunc, Args);    //µ÷ÓÃº¯Êı
-	if (NULL == result)
-	{
-		cout << "µ÷ÓÃpythonº¯ÊıÊ§°Ü" << endl;
-	}
-
-	
-
-
-
-
-
-
-
-
-
-
-
-
-	//PyObject* pyParams = Py_BuildValue("(s)", "helllo world!");//c++ÀàĞÍ×ªpythonÀàĞÍ
-	//char * result1;
-	//pArg = PyEval_CallObject(pFunc, pyParams);    //µ÷ÓÃº¯Êı
-	//PyArg_Parse(pArg, "s", &result1);     //pythonÀàĞÍ×ªc++ÀàĞÍ
-	//cout << result1 << endl;
-
-
-
-
-	
-
-
-	//test##############################
-	//cout << plot_data[0][0].position.x << endl;
-	//PyObject* arg1 = Py_BuildValue("d", plot_data[0][0].position.x);
-	//double w = PyFloat_AsDouble(arg1);
-	//cout << w;
-	//PyRun_SimpleString("");
-	//µ÷ÓÃPython£¬ÀûÓÃ¿âmatplotlib»­Í¼
-	//Py_Initialize(); /*³õÊ¼»¯python½âÊÍÆ÷,¸æËß±àÒëÆ÷ÒªÓÃµÄpython±àÒëÆ÷*/
-	//PyRun_SimpleString("import matplotlib.pyplot as plt"); /*µ÷ÓÃpythonÎÄ¼ş*/
+	//Py_Initialize(); /*åˆå§‹åŒ–pythonè§£é‡Šå™¨,å‘Šè¯‰ç¼–è¯‘å™¨è¦ç”¨çš„pythonç¼–è¯‘å™¨*/
+	//PyRun_SimpleString("import matplotlib.pyplot as plt"); /*è°ƒç”¨pythonæ–‡ä»¶*/
 	//PyRun_SimpleString("import numpy as np");
 	//PyRun_SimpleString("from mpl_toolkits.mplot3d import Axes3D");
 	//PyRun_SimpleString("import random");
@@ -110,33 +19,81 @@ void MatPlot::Plot_trajectory_3D(vector<vector<TimePosition>> plot_data)
 	//PyRun_SimpleString("from mpl_toolkits.mplot3d.art3d import Poly3DCollection, Line3DCollection");
 	//PyRun_SimpleString("x = np.linspace(1, 20, 20)");
 	//PyRun_SimpleString("y = np.arange(10, 30, 1)");
-	//PyRun_SimpleString("z = np.random.randint(20, 50, 20)  # numpy·Ö±ğÉú³ÉÈı¸öÎ¬¶ÈÊı¾İ");
+	//PyRun_SimpleString("z = np.random.randint(20, 50, 20)  # numpyåˆ†åˆ«ç”Ÿæˆä¸‰ä¸ªç»´åº¦æ•°æ®");
 	//PyRun_SimpleString("fig = plt.figure()");
 	//PyRun_SimpleString("ax = Axes3D(fig)");
 	//PyRun_SimpleString("ax.plot(x, y, z, 'bo--')");
-	//PyRun_SimpleString("plt.show()"); /*µ÷ÓÃpythonÎÄ¼ş*/
+	//PyRun_SimpleString("plt.show()"); /*è°ƒç”¨pythonæ–‡ä»¶*/
+	//è°ƒç”¨pythonè„šæœ¬
+	//Py_Finalize(); /*ç»“æŸpythonè§£é‡Šå™¨ï¼Œé‡Šæ”¾èµ„æº*/
 
-	//import matplotlib.pyplot as plt
-	//	import numpy as np
-	//	from mpl_toolkits.mplot3d import Axes3D
-	//	import random
-	//	import matplotlib as mpl
-	//	from matplotlib import cm
-	//	from mpl_toolkits.mplot3d import axes3d
-	//	from mpl_toolkits.mplot3d.art3d import Poly3DCollection, Line3DCollection
+	Py_Initialize(); /*åˆå§‹åŒ–pythonè§£é‡Šå™¨,å‘Šè¯‰ç¼–è¯‘å™¨è¦ç”¨çš„pythonç¼–è¯‘å™¨*/
 
-	//	def plot_3d() :
-	//	print("hello!")
-	//	x = np.linspace(1, 20, 20)
-	//	y = np.arange(10, 30, 1)
-	//	z = np.random.randint(20, 50, 20)  # numpy·Ö±ğÉú³ÉÈı¸öÎ¬¶ÈÊı¾İ
-	//	fig = plt.figure()
-	//	ax = Axes3D(fig)
-	//	ax.plot(x, y, z, 'bo--')
-	//	plt.show()
-	//	return
+	if (!Py_IsInitialized())
+	{
+		cout << "åˆå§‹åŒ–å¤±è´¥ï¼" << endl;
+		Py_Finalize();
+	}
+	PyObject * pModule = NULL;
+	PyObject * pFunc = NULL;
 
-	Py_Finalize(); /*½áÊøpython½âÊÍÆ÷£¬ÊÍ·Å×ÊÔ´*/
+	PyRun_SimpleString("import sys");     //æ·»åŠ Insertæ¨¡å—è·¯å¾„  
+	PyRun_SimpleString("sys.path.append('./')");
+	pModule = PyImport_ImportModule("MyPython");      //Pythonæ–‡ä»¶å  
+
+	if (!pModule) // åŠ è½½æ¨¡å—å¤±è´¥
+	{
+		cout << "[ERROR] pyæ–‡ä»¶å¯¼å…¥å¤±è´¥ï¼ Python get module failed." << endl;
+		return;
+	}
+	pFunc = PyObject_GetAttrString(pModule, "plot_3d");  //Pythonæ–‡ä»¶ä¸­çš„å‡½æ•°å
+	if (!pModule) // åŠ è½½æ¨¡å—å¤±è´¥
+	{
+		cout << "[ERROR] å‡½æ•°å¯¼å…¥å¤±è´¥ï¼ Python get function failed." << endl;
+		return;
+	}
+	 
+	//åˆ›å»ºå‚æ•°:  
+	PyObject* Args_X = PyTuple_New(plot_data.size());    //äºŒç»´å…ƒç»„
+	PyObject* Args_Y = PyTuple_New(plot_data.size());
+	PyObject* Args_T = PyTuple_New(plot_data.size());
+	for (int i = 0; i < plot_data.size(); i++)
+	{
+		PyObject* temp_X = PyTuple_New(plot_data[i].size());     //å…ƒç»„
+		PyObject* temp_Y = PyTuple_New(plot_data[i].size());
+		PyObject* temp_T = PyTuple_New(plot_data[i].size());
+		for (int j = 0; j < plot_data[i].size(); j++)
+		{
+			PyTuple_SetItem(temp_X, j, Py_BuildValue("d", plot_data[i][j].position.x));      //Py_BuildValueæŠŠc++æ•°æ®å°è£…æˆpythonæ•°æ®
+			PyTuple_SetItem(temp_Y, j, Py_BuildValue("d", plot_data[i][j].position.y));
+			PyTuple_SetItem(temp_T, j, Py_BuildValue("i", plot_data[i][j].time));
+		}
+		PyTuple_SetItem(Args_X, i, temp_X);
+		PyTuple_SetItem(Args_Y, i, temp_Y);
+		PyTuple_SetItem(Args_T, i, temp_T);
+
+	}
+
+	PyObject* Args = PyTuple_New(3);  //ä¼ ç»™pythonçš„ä¸‰ä¸ªå‚æ•°å°è£…æˆä¸€ä¸ªå…ƒç¥–ï¼Œå¯¹åº”pythonä¸­å‡½æ•°ï¼Œè¦æ±‚å‚æ•°ä¸ªæ•°å’Œå…ƒç¥–å…ƒç´ æ•°ç›®ç›¸åŒï¼Œå¦åˆ™SystemErrorï¼
+	PyTuple_SetItem(Args, 0, Args_X);
+	PyTuple_SetItem(Args, 1, Args_Y);
+	PyTuple_SetItem(Args, 2, Args_T);
+
+	PyObject* result = NULL;
+	result = PyEval_CallObject(pFunc, Args);    //è°ƒç”¨å‡½æ•°
+	if (NULL == result)
+	{
+		cout << "è°ƒç”¨pythonå‡½æ•°å¤±è´¥" << endl;
+	}
+
+	Py_DECREF(pModule);    //æ¸…ç†ç©ºé—´
+	Py_DECREF(pFunc);
+	Py_DECREF(Args_X);
+	Py_DECREF(Args_Y);
+	Py_DECREF(Args_T);
+	Py_DECREF(Args);
+	Py_DECREF(result);
+	Py_Finalize(); /*ç»“æŸpythonè§£é‡Šå™¨ï¼Œé‡Šæ”¾èµ„æº*/
 
 
 }
