@@ -77,7 +77,7 @@ Mat segmentation::segment(string im_name, Mat &im_gray, Mat &im_dst, vector<Rota
 		Scalar color_R = Scalar(0, 255, 255);
 		Scalar color = Scalar(255, 0, 0);
 		drawContours(drawing, contours, i, color_R, 1, 8, vector<Vec4i>(), 0, Point());
-		ellipse(drawing, im_minEllipse[i], color, 1, 8);
+		//ellipse(drawing, im_minEllipse[i], color, 1, 8);    //外接椭圆，记录每个细胞信息
 	//	cout << (i + 1) << im_minEllipse[i].center << "   minor axis:  " << setprecision(6) << im_minEllipse[i].size.width << "  long axis:  " << setprecision(6) << im_minEllipse[i].size.height << "  roundness:" << setprecision(6) << im_roundness[i] << endl;
 	}
 	//cout << endl << endl;
