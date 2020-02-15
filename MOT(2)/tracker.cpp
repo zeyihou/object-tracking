@@ -1,14 +1,14 @@
 #include "tracker.h"
 
-#define IM_NUM 50 //´¦ÀíÍ¼Æ¬µÄÕÅÊı
-#define REMOTE 20   //ÏàÁÚÖ¡Ö®Ç°Æ¥ÅäµÄ¾àÀëÉÏÏŞ£¬¾àÀë³¬¹ıREMOTE£¬Ôò½øĞĞ¹ì¼£ÇĞ¶Ï
-#define TRACKLET_REMOTE 100    //ÏàÁÚtrackletÖ®Ç°Æ¥ÅäµÄ¾àÀëÉÏÏŞ
-//È¨ÖØ³¬²ÎÊı
+#define IM_NUM 50 //å¤„ç†å›¾ç‰‡çš„å¼ æ•°
+#define REMOTE 20   //ç›¸é‚»å¸§ä¹‹å‰åŒ¹é…çš„è·ç¦»ä¸Šé™ï¼Œè·ç¦»è¶…è¿‡REMOTEï¼Œåˆ™è¿›è¡Œè½¨è¿¹åˆ‡æ–­
+#define TRACKLET_REMOTE 30    //ç›¸é‚»trackletä¹‹å‰åŒ¹é…çš„è·ç¦»ä¸Šé™
+//æƒé‡è¶…å‚æ•°
 #define W_Euclidean 1
 #define PI 3.1415926
 
-#define INF 1000  //ÎŞÇî´ó
-#define LENGTH 50
+#define INF 1000  //æ— ç©·å¤§
+//#define LENGTH 50
 
 tracker::tracker()
 {
@@ -18,20 +18,20 @@ tracker::tracker()
 }
 tracker::~tracker(){}
 
-Mat tracker::read_trans(string path)    //¶ÁÈ¡Í¼Æ¬×ª»»³É»Ò¶ÈÍ¼
+Mat tracker::read_trans(string path)    //è¯»å–å›¾ç‰‡è½¬æ¢æˆç°åº¦å›¾
 {
 	Mat img = imread(path);
 	if (img.empty())
 	{
-		//¼ì²éÊÇ·ñ¶ÁÈ¡Í¼Ïñ
-		cout << "error! Í¼Æ¬¶ÁÈ¡Ê§°Ü\n";
+		//æ£€æŸ¥æ˜¯å¦è¯»å–å›¾åƒ
+		cout << "error! å›¾ç‰‡è¯»å–å¤±è´¥\n";
 		waitKey(0);
 		getchar();
 		return img;
 	}
 	else
 	{
-		cvtColor(img, img, COLOR_BGR2GRAY);   //×ª»»Îª»Ò¶ÈÍ¼
+		cvtColor(img, img, COLOR_BGR2GRAY);   //è½¬æ¢ä¸ºç°åº¦å›¾
 		return img;
 	}
 }
@@ -44,8 +44,8 @@ void tracker::form_tracklets()
 	trace_gray = read_trans("D:\\Mot VS2013 project\\Mot test1\\video_dataset\\sperm_0000.jpg");
 
 	segmentation SEG;
-	trace_draw = SEG.segment("trace", trace_gray, trace_dst, trace_minellipse);       //´æ´¢¿ªÊ¼µÄĞÅÏ¢
-	pre_minellipse = trace_minellipse;      //pre_minellipse ÎªÃ¿´ÎÆ¥ÅäÖĞµÄ Ç°Ö¡
+	trace_draw = SEG.segment("trace", trace_gray, trace_dst, trace_minellipse);       //å­˜å‚¨å¼€å§‹çš„ä¿¡æ¯
+	pre_minellipse = trace_minellipse;      //pre_minellipse ä¸ºæ¯æ¬¡åŒ¹é…ä¸­çš„ å‰å¸§
 
 	minellipse[0].obj_minellipse = trace_minellipse;
 	minellipse[0].pre_link.resize(trace_minellipse.size());
@@ -57,7 +57,7 @@ void tracker::form_tracklets()
 	int pre_num, aft_num;
 	HungarianAlgorithm HungAlgo;
 
-	for (int i = 1; i < IM_NUM; i++)    //·Ö¸îËùÓĞÍ¼Æ¬
+	for (int i = 1; i < IM_NUM; i++)    //åˆ†å‰²æ‰€æœ‰å›¾ç‰‡
 	{
 		if (i < 10)
 			s1 += "000";
@@ -68,10 +68,10 @@ void tracker::form_tracklets()
 
 		num = to_string(i);
 		s1 += num;
-		s1 += s2;               //s1  Îª×é³ÉµÄÂ·¾¶Ãû
+		s1 += s2;               //s1  ä¸ºç»„æˆçš„è·¯å¾„å
 		aft_gray = read_trans(s1);
 		string aft_name = "aft" + num;
-		SEG.segment(aft_name, aft_gray, aft_dst, aft_minellipse);    // aft_minellipse ÎªÃ¿´ÎÆ¥ÅäÖĞµÄ ºóÖ¡
+		SEG.segment(aft_name, aft_gray, aft_dst, aft_minellipse);    // aft_minellipse ä¸ºæ¯æ¬¡åŒ¹é…ä¸­çš„ åå¸§
 
 		minellipse[i].obj_minellipse = aft_minellipse;
 		minellipse[i].pre_link.resize(aft_minellipse.size());
@@ -80,14 +80,14 @@ void tracker::form_tracklets()
 			minellipse[i].pre_link[n] = 1;
 		}
 
-		//³õÊ¼»¯È¨Öµ¾ØÕó
+		//åˆå§‹åŒ–æƒå€¼çŸ©é˜µ
 		pre_num = pre_minellipse.size();
 		aft_num = aft_minellipse.size();
-		vector<double> temp;  //ÁÙÊ±±äÁ¿£¬³õÊ¼»¯Ê¹ÓÃ
+		vector<double> temp;  //ä¸´æ—¶å˜é‡ï¼Œåˆå§‹åŒ–ä½¿ç”¨
 		temp.resize(aft_num);
-		vector<vector<double>> connect;    //È¨Öµ¾ØÕó
+		vector<vector<double>> connect;    //æƒå€¼çŸ©é˜µ
 		connect.resize(pre_num, temp);
-		for (int a = 0; a < pre_num; a++)    //³õÊ¼»¯£¬ÒªÉè¼Æ¸÷ÖÖÌØÕ÷µÄÈ¨ÖØ³¬²ÎÊı
+		for (int a = 0; a < pre_num; a++)    //åˆå§‹åŒ–ï¼Œè¦è®¾è®¡å„ç§ç‰¹å¾çš„æƒé‡è¶…å‚æ•°
 		{
 			for (int b = 0; b < aft_num; b++)
 			{
@@ -97,24 +97,24 @@ void tracker::form_tracklets()
 			}
 		}
 
-		//Hungarian Æ¥Åä
+		//Hungarian åŒ¹é…
 		HungAlgo.Solve(connect, matching[i - 1]);
 
 		//*********************************************************************
-		//ÉèÖÃãĞÖµ£¬½«¾àÀëÈ¨Öµ½Ï´óµÄÁ½¸öÁ¬½ÓµãÇ¿ÖÆ¶Ï¿ª,µÃµ½reliableµÄtracklets
+		//è®¾ç½®é˜ˆå€¼ï¼Œå°†è·ç¦»æƒå€¼è¾ƒå¤§çš„ä¸¤ä¸ªè¿æ¥ç‚¹å¼ºåˆ¶æ–­å¼€,å¾—åˆ°reliableçš„tracklets
 		//*********************************************************************
 		//
 		for (int k = 0; k < connect.size(); k++)
 		{
 			int j = matching[i - 1][k];
-			if (j != -1 && connect[k][j] > REMOTE)         //×¢Òâ: Assignment[i] µÄÖµ¿ÉÄÜÈ¡µ½ -1 £¬Ê¹µÃÏÂ±êÔ½½ç
+			if (j != -1 && connect[k][j] > REMOTE)         //æ³¨æ„: Assignment[i] çš„å€¼å¯èƒ½å–åˆ° -1 ï¼Œä½¿å¾—ä¸‹æ ‡è¶Šç•Œ
 			{
-				matching[i - 1][k] = -1;              //ÇĞ¶ÏµÃµ½reliableµÄtracklets
+				matching[i - 1][k] = -1;              //åˆ‡æ–­å¾—åˆ°reliableçš„tracklets
 			}
 
 		}
 
-		//±ê¼Ç¹ì¼£¶Î¿ªÊ¼Î»ÖÃ£¬£¨¸ù¾İ i-1 Ö¡ºÍ i Ö¡Ö®¼äµÄÆ¥Åä¹ØÏµ£©
+		//æ ‡è®°è½¨è¿¹æ®µå¼€å§‹ä½ç½®ï¼Œï¼ˆæ ¹æ® i-1 å¸§å’Œ i å¸§ä¹‹é—´çš„åŒ¹é…å…³ç³»ï¼‰
 		for (int n = 0; n < matching[i - 1].size(); n++)
 		{
 			if (matching[i - 1][n] != -1)
@@ -123,8 +123,8 @@ void tracker::form_tracklets()
 			}
 		}
 
-		Scalar color = Scalar(0, 255, 0);   //¹ì¼£ÑÕÉ«
-		for (int k = 0; k < matching[i - 1].size(); k++)             //¸ù¾İ matching[] ½á¹û»­Ïß
+		Scalar color = Scalar(0, 255, 0);   //è½¨è¿¹é¢œè‰²
+		for (int k = 0; k < matching[i - 1].size(); k++)             //æ ¹æ® matching[] ç»“æœç”»çº¿
 		{
 			//cout << matching[i-1][k] << endl;
 			if (matching[i - 1][k] != -1)
@@ -133,7 +133,7 @@ void tracker::form_tracklets()
 			}
 		}
 
-		pre_minellipse = aft_minellipse;      //ºóÖ¡ĞÅÏ¢¸³Öµ¸øÇ°Ö¡
+		pre_minellipse = aft_minellipse;      //åå¸§ä¿¡æ¯èµ‹å€¼ç»™å‰å¸§
 		s1 = "D:\\Mot VS2013 project\\Mot test1\\video_dataset\\sperm_";
 	}
 
@@ -146,17 +146,17 @@ void tracker::form_trajectory()
 {
 	for (int i = 1; i < IM_NUM; i++)
 	{
-		//´ËÊ±£¬¸ù¾İmatching[i-1]¼ÆËãµ±Ç°Á½Ö¡Ö®¼äµÄtracklets
+		//æ­¤æ—¶ï¼Œæ ¹æ®matching[i-1]è®¡ç®—å½“å‰ä¸¤å¸§ä¹‹é—´çš„tracklets
 		for (int m = 0; m < matching[i - 1].size(); m++)
 		{
-			if ((minellipse[i - 1].pre_link[m] == 1) && (matching[i - 1][m] != -1))    //ÕÒtrackletsµÄ ¿ªÊ¼µã (Ìõ¼şÊÇÖ®Ç°Î´Æ¥Åä¹ı£¬ÇÒ»áÆ¥ÅäÏÂÒ»¸ö)
+			if ((minellipse[i - 1].pre_link[m] == 1) && (matching[i - 1][m] != -1))    //æ‰¾trackletsçš„ å¼€å§‹ç‚¹ (æ¡ä»¶æ˜¯ä¹‹å‰æœªåŒ¹é…è¿‡ï¼Œä¸”ä¼šåŒ¹é…ä¸‹ä¸€ä¸ª)
 			{
-				int sum = 0;    //¼ÆÊıÆ÷£¬ÓÃÀ´¼ÆËã¹ì¼£Á¬½Ó´ÎÊı
+				int sum = 0;    //è®¡æ•°å™¨ï¼Œç”¨æ¥è®¡ç®—è½¨è¿¹è¿æ¥æ¬¡æ•°
 				tracklet tem;
 				tem.t_s = i - 1;
 				tem.s_ID = m;
 
-				int cur = matching[i - 1][m];     //Ñ­»·
+				int cur = matching[i - 1][m];     //å¾ªç¯
 				tem.t_e = i - 1;
 				int k = m;
 				//int x = i - 1;
@@ -170,66 +170,64 @@ void tracker::form_trajectory()
 					k = matching[tem.t_e - 1][k];
 					if (tem.t_e > IM_NUM - 2)
 					{
-						//cout << "matchingÔ½½ç" << endl;
+						//cout << "matchingè¶Šç•Œ" << endl;
 						break;
 					}
 					cur = matching[tem.t_e][cur];
 				}
 				tem.v = tem.len / sum;
 				tracklets_sort[i - 1].push_back(tem);
-				tracklets.push_back(tem);  //Ìí¼ÓÒ»Ìõ¹ì¼£
+				tracklets.push_back(tem);  //æ·»åŠ ä¸€æ¡è½¨è¿¹
 			}
 
 		}
 	}
 
 	//******************************
-	//trackletsÖ®¼ä½øĞĞhungarian
+	//trackletsä¹‹é—´è¿›è¡Œhungarian
 	//******************************
-	vector<double> temp;  //ÁÙÊ±±äÁ¿£¬³õÊ¼»¯Ê¹ÓÃ
+	vector<double> temp;  //ä¸´æ—¶å˜é‡ï¼Œåˆå§‹åŒ–ä½¿ç”¨
 	temp.resize(tracklets.size());
-	vector<vector<double>> track_connect;   //È¨Öµ¾ØÕó
+	vector<vector<double>> track_connect;   //æƒå€¼çŸ©é˜µ
 	track_connect.resize(tracklets.size(), temp);
 
-	//const int INF = 1000;  //ÎŞÇî´ó
-	//const int LENGTH = 50;
 
-	for (int i = 0; i < tracklets.size(); i++)      //Ã¿Ò»¶ÔtrackletsÖ®¼ä¼ÆËã¹ØÁª¾ØÕó
+	for (int i = 0; i < tracklets.size(); i++)      //æ¯ä¸€å¯¹trackletsä¹‹é—´è®¡ç®—å…³è”çŸ©é˜µ
 	{
 		for (int j = 0; j < tracklets.size(); j++)
 		{
 			RotatedRect pre = minellipse[tracklets[i].t_e].obj_minellipse[tracklets[i].e_ID];
 			RotatedRect aft = minellipse[tracklets[j].t_s].obj_minellipse[tracklets[j].s_ID];
 
-			if (sqrt(pow(pre.center.y - aft.center.y, 2) + pow(pre.center.x - aft.center.x, 2))<LENGTH && (tracklets[i].t_e < tracklets[j].t_s) )
-				//if ((tracklets[i].t_e < tracklets[j].t_s)  )             //Ìõ¼ş
+			if (sqrt(pow(pre.center.y - aft.center.y, 2) + pow(pre.center.x - aft.center.x, 2))<TRACKLET_REMOTE/*LENGTH*/ && (tracklets[i].t_e < tracklets[j].t_s) )
+				//if ((tracklets[i].t_e < tracklets[j].t_s)  )             //æ¡ä»¶
 			{
 				track_connect[i][j] = abs(tracklets[i].v - tracklets[j].v);
 			}
 			else
 			{
-				track_connect[i][j] = INF;     //Îª²»¿ÉÄÜµÄtrackletsÆ¥Åä£¬ÉèÖÃÒ»¸ö½Ï´óµÄÈ¨Öµ
+				track_connect[i][j] = INF;     //ä¸ºä¸å¯èƒ½çš„trackletsåŒ¹é…ï¼Œè®¾ç½®ä¸€ä¸ªè¾ƒå¤§çš„æƒå€¼
 			}
 		}
 	}
 
-	//Hungarian Æ¥Åä
+	//Hungarian åŒ¹é…
 	HungarianAlgorithm HungAlgo;
 	//vector<int> track_matching(tracklets.size() - 1);    //track_matching
 	track_matching.resize(tracklets.size() - 1);
 	HungAlgo.Solve(track_connect, track_matching);
 
 
-	for (int i = 0; i < track_matching.size(); i++)   //É¸Ñ¡
+	for (int i = 0; i < track_matching.size(); i++)   //ç­›é€‰
 	{
 		if (track_connect[i][track_matching[i]] == INF)
 		{
-			track_matching[i] = -1;                                  //¶Ï¿ª
+			track_matching[i] = -1;                                  //æ–­å¼€
 		}
 	}
 
-	Scalar color = Scalar(0, 0, 255);   //¹ì¼£ÑÕÉ«
-	for (int k = 0; k < track_matching.size(); k++)             //¸ù¾İ track_matching[] ½á¹û»­Ïß
+	Scalar color = Scalar(0, 0, 255);   //è½¨è¿¹é¢œè‰²
+	for (int k = 0; k < track_matching.size(); k++)             //æ ¹æ® track_matching[] ç»“æœç”»çº¿
 	{
 		if (track_matching[k] != -1)
 		{
@@ -238,12 +236,12 @@ void tracker::form_trajectory()
 	}
 
 	//******************************************************
-	//¼ÆËãËùÓĞtrajectoryÖĞµÄµãÔÚÃ¿Ò»Ê±¿ÌµÄÎ»ÖÃ£¬ÓÃÓÚ»­Í¼Õ¹Ê¾
-	//½á¹û¼ÇÂ¼ÔÚmotion_position½á¹¹ÖĞ
+	//è®¡ç®—æ‰€æœ‰trajectoryä¸­çš„ç‚¹åœ¨æ¯ä¸€æ—¶åˆ»çš„ä½ç½®ï¼Œç”¨äºç”»å›¾å±•ç¤º
+	//ç»“æœè®°å½•åœ¨motion_positionç»“æ„ä¸­
 	//******************************************************
 
-	vector<bool> aft_mark; //ÓÃÓÚ±ê¼ÇÃ¿Ò»¸ö¹ì¼£¶ÎtrackletÊÇ·ñÒÑ¾­ÊôÓÚÄ³Ò»¸ötrajectory,ÊÇ·ñ¿ÉÒÔÆ¥Åä, (  aft_mark[] ¶ÔÓ¦ tracklets[]  )
-	aft_mark.resize(tracklets.size(),true);        //³õÊ¼»¯,¾ù¿ÉÒÔÆ¥Åä
+	vector<bool> aft_mark; //ç”¨äºæ ‡è®°æ¯ä¸€ä¸ªè½¨è¿¹æ®µtrackletæ˜¯å¦å·²ç»å±äºæŸä¸€ä¸ªtrajectory,æ˜¯å¦å¯ä»¥åŒ¹é…, (  aft_mark[] å¯¹åº” tracklets[]  )
+	aft_mark.resize(tracklets.size(),true);        //åˆå§‹åŒ–,å‡å¯ä»¥åŒ¹é…
 	
 	int time, ID;
 
@@ -251,7 +249,7 @@ void tracker::form_trajectory()
 	{
 		vector<TimePosition> time_position;
 
-		if (aft_mark[i] == true)          //¶ÔÓÚÒ»Ìõ¹ì¼£¶Îtracklet£¬Èç¹ûÃ»ÓĞ¹éÊô
+		if (aft_mark[i] == true)          //å¯¹äºä¸€æ¡è½¨è¿¹æ®µtrackletï¼Œå¦‚æœæ²¡æœ‰å½’å±
 		{
 			TimePosition tp;
 			time = tracklets[i].t_s;
@@ -271,7 +269,7 @@ void tracker::form_trajectory()
 					break;
 				}
 			}
-			aft_mark[i] = false;      //Í³¼ÆÁËÒ»Ìõ¹ì¼£
+			aft_mark[i] = false;      //ç»Ÿè®¡äº†ä¸€æ¡è½¨è¿¹
 
 			int k = i;
 			while (track_matching[k] != -1)
@@ -294,7 +292,7 @@ void tracker::form_trajectory()
 						break;
 					}
 				}
-				aft_mark[k] = false;      //Í³¼ÆÁËÒ»Ìõ¹ì¼£
+				aft_mark[k] = false;      //ç»Ÿè®¡äº†ä¸€æ¡è½¨è¿¹
 			}
 
 			motion_location.push_back(time_position);
