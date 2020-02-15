@@ -1,32 +1,32 @@
 #include "segmentation.h"
 
-#define thr 30  //³õÊ¼»¯ãĞÖµ  
-#define IM_SIZE 3   //·Ö¸îÊ±£¬É¸Ñ¡³ß´ç
-//#define IM_ROUNDNESS 0.4   //·Ö¸îÊ±£¬É¸Ñ¡Ô²¶È
+#define thr 40  //åˆå§‹åŒ–é˜ˆå€¼  
+#define IM_SIZE 3   //åˆ†å‰²æ—¶ï¼Œç­›é€‰å°ºå¯¸
+//#define IM_ROUNDNESS 0.4   //åˆ†å‰²æ—¶ï¼Œç­›é€‰åœ†åº¦
 
 segmentation::segmentation(){}
 segmentation::~segmentation(){}
 
 Mat segmentation::segment(string im_name, Mat &im_gray, Mat &im_dst, vector<RotatedRect> &im_minEllipse )
 {
-	//hierarchyÊÇÒ»¸öÏòÁ¿£¬ÏòÁ¿ÄÚÃ¿¸öÔªËØ¶¼ÊÇÒ»¸ö°üº¬4¸öintĞÍµÄÊı×é¡£ÏòÁ¿hierarchyÄÚµÄÔªËØºÍÂÖÀªÏòÁ¿contoursÄÚµÄÔªËØÊÇÒ»Ò»¶ÔÓ¦µÄ£¬ÏòÁ¿µÄÈİÁ¿ÏàÍ¬¡£
-	//hierarchyÄÚÃ¿¸öÔªËØµÄ4¸öintĞÍ±äÁ¿ÊÇhierarchy[i][0] ~hierarchy[i][3]£¬·Ö±ğ±í
-	//Ê¾µ±Ç°ÂÖÀª i µÄºóÒ»¸öÂÖÀª¡¢Ç°Ò»¸öÂÖÀª¡¢¸¸ÂÖÀªºÍÄÚÇ¶ÂÖÀªµÄ±àºÅË÷Òı
+	//hierarchyæ˜¯ä¸€ä¸ªå‘é‡ï¼Œå‘é‡å†…æ¯ä¸ªå…ƒç´ éƒ½æ˜¯ä¸€ä¸ªåŒ…å«4ä¸ªintå‹çš„æ•°ç»„ã€‚å‘é‡hierarchyå†…çš„å…ƒç´ å’Œè½®å»“å‘é‡contourså†…çš„å…ƒç´ æ˜¯ä¸€ä¸€å¯¹åº”çš„ï¼Œå‘é‡çš„å®¹é‡ç›¸åŒã€‚
+	//hierarchyå†…æ¯ä¸ªå…ƒç´ çš„4ä¸ªintå‹å˜é‡æ˜¯hierarchy[i][0] ~hierarchy[i][3]ï¼Œåˆ†åˆ«è¡¨
+	//ç¤ºå½“å‰è½®å»“ i çš„åä¸€ä¸ªè½®å»“ã€å‰ä¸€ä¸ªè½®å»“ã€çˆ¶è½®å»“å’Œå†…åµŒè½®å»“çš„ç¼–å·ç´¢å¼•
 	vector<Vec4i> hierarchy;
 	vector<vector<Point>> contours;
 	//vector<double> im_roundness;
 
 	//cout << "##################  threshold:   " << thr << "    #########################" << endl;
-	threshold(im_gray, im_dst, thr, 255, THRESH_BINARY);  //ãĞÖµº¯Êı£¬Í¼Ïñ·Ö¸î  THRESH_TOZERO\THRESH_BINARY\.....
-	findContours(im_dst, contours, hierarchy, RETR_TREE, CHAIN_APPROX_SIMPLE, Point(0, 0));   //ÕÒÂÖÀª,PointÊÇÆ«ÒÆÁ¿
+	threshold(im_gray, im_dst, thr, 255, THRESH_BINARY);  //é˜ˆå€¼å‡½æ•°ï¼Œå›¾åƒåˆ†å‰²  THRESH_TOZERO\THRESH_BINARY\.....
+	findContours(im_dst, contours, hierarchy, RETR_TREE, CHAIN_APPROX_SIMPLE, Point(0, 0));   //æ‰¾è½®å»“,Pointæ˜¯åç§»é‡
 
-	//¶ÔÂÖÀª½øĞĞÒ»Ğ©Ô¤´¦Àí²Ù×÷
-	vector<vector<Point>>::iterator contours_it;     //ÂÖÀªÖ¸Õë
-	for (contours_it = contours.begin(); contours_it != contours.end();)    ////É¾È¥Ğ¡ÓÚ10¸öÏñËØµÄÂÖÀª
+	//å¯¹è½®å»“è¿›è¡Œä¸€äº›é¢„å¤„ç†æ“ä½œ
+	vector<vector<Point>>::iterator contours_it;     //è½®å»“æŒ‡é’ˆ
+	for (contours_it = contours.begin(); contours_it != contours.end();)    ////åˆ å»å°äº10ä¸ªåƒç´ çš„è½®å»“
 	{
-		if ((*contours_it).size() < 6)      //É¾È¥Ğ¡ÓÚ10¸öÏñËØµÄ±ßÔµ
+		if ((*contours_it).size() < 6)      //åˆ å»å°äº10ä¸ªåƒç´ çš„è¾¹ç¼˜
 		{
-			contours_it = contours.erase(contours_it);    //ÈôÉ¾³ı³É¹¦£¬ÔòÖ¸ÕëÒÑ¾­+1
+			contours_it = contours.erase(contours_it);    //è‹¥åˆ é™¤æˆåŠŸï¼Œåˆ™æŒ‡é’ˆå·²ç»+1
 		}
 		else
 		{
@@ -34,26 +34,26 @@ Mat segmentation::segment(string im_name, Mat &im_gray, Mat &im_dst, vector<Rota
 		}
 	}
 
-	//im_roundness.resize(contours.size());    //  Ã¿¸öÂÖÀªµÄÔ²ĞÎ¶È
-	im_minEllipse.resize(contours.size());    //RotatedRectÊÇÒ»¸ö´æ´¢Ğı×ª¾ØĞÎµÄÀà£¬ÓÃÓÚ´æ´¢ÍÖÔ²ÄâºÏº¯Êı·µ»ØµÄ½á¹û
+	//im_roundness.resize(contours.size());    //  æ¯ä¸ªè½®å»“çš„åœ†å½¢åº¦
+	im_minEllipse.resize(contours.size());    //RotatedRectæ˜¯ä¸€ä¸ªå­˜å‚¨æ—‹è½¬çŸ©å½¢çš„ç±»ï¼Œç”¨äºå­˜å‚¨æ¤­åœ†æ‹Ÿåˆå‡½æ•°è¿”å›çš„ç»“æœ
 
-	for (int i = 0; i < contours.size(); i++)   //¶ÔÃ¿Ò»¸öÂÖÀª»­×îĞ¡°üÎ§Ô²
+	for (int i = 0; i < contours.size(); i++)   //å¯¹æ¯ä¸€ä¸ªè½®å»“ç”»æœ€å°åŒ…å›´åœ†
 	{
-		//¶ÔÖ¸¶¨µÄµã¼¯½øĞĞ¶à±ßĞÎ±Æ½üµÄº¯Êı,Á¬Ğø¹â»¬ÇúÏßÕÛÏß»¯£¬¶ÔÍ¼ÏñÂÖÀªµã½øĞĞ¶à±ßĞÎÄâºÏ¡£
-		//approxPolyDP(contours[i], contours[i], 1, true);    //true´ú±íÇúÏßÊÇ±ÕºÏµÄ
-		if (contours[i].size() > 5)          //ÖÁÉÙ6¸öµã»­ÍÖÔ²
+		//å¯¹æŒ‡å®šçš„ç‚¹é›†è¿›è¡Œå¤šè¾¹å½¢é€¼è¿‘çš„å‡½æ•°,è¿ç»­å…‰æ»‘æ›²çº¿æŠ˜çº¿åŒ–ï¼Œå¯¹å›¾åƒè½®å»“ç‚¹è¿›è¡Œå¤šè¾¹å½¢æ‹Ÿåˆã€‚
+		//approxPolyDP(contours[i], contours[i], 1, true);    //trueä»£è¡¨æ›²çº¿æ˜¯é—­åˆçš„
+		if (contours[i].size() > 5)          //è‡³å°‘6ä¸ªç‚¹ç”»æ¤­åœ†
 		{
-			im_minEllipse[i] = fitEllipse(contours[i]);    //×îĞ¡Íâ½ÓÍÖÔ²
-		//	im_roundness[i] = (4 * CV_PI * contourArea(contours[i])) / (arcLength(contours[i], true)  *arcLength(contours[i], true));//Ô²¶È
+			im_minEllipse[i] = fitEllipse(contours[i]);    //æœ€å°å¤–æ¥æ¤­åœ†
+		//	im_roundness[i] = (4 * CV_PI * contourArea(contours[i])) / (arcLength(contours[i], true)  *arcLength(contours[i], true));//åœ†åº¦
 		}
 		else
-			cout << "ÏñËØµãÊıÁ¿<5" << endl;
+			cout << "åƒç´ ç‚¹æ•°é‡<5" << endl;
 	}
 
-	//..°´Ìõ¼şÉ¸Ñ¡¡£¡£¡£¡£¡£¡£¡£¡£¡£¡£¡£¡£¡£¡£¡£¡£¡£¡£¡£¡£¡£¡£
-	//vector<double>::iterator roundness_it = im_roundness.begin();    //  Ô²ĞÎ¶ÈÖ¸Õë
-	vector<RotatedRect>::iterator minEllipse_it = im_minEllipse.begin();    //ÍÖÔ²Ö¸Õë
-	for (contours_it = contours.begin(); contours_it != contours.end();)    //it++ÒªĞ´µ½forÀïÃæ£¬·ñÔò²»ÄÜÉ¾³ıÁ¬ĞøÖµ
+	//..æŒ‰æ¡ä»¶ç­›é€‰ã€‚ã€‚ã€‚ã€‚ã€‚ã€‚ã€‚ã€‚ã€‚ã€‚ã€‚ã€‚ã€‚ã€‚ã€‚ã€‚ã€‚ã€‚ã€‚ã€‚ã€‚ã€‚
+	//vector<double>::iterator roundness_it = im_roundness.begin();    //  åœ†å½¢åº¦æŒ‡é’ˆ
+	vector<RotatedRect>::iterator minEllipse_it = im_minEllipse.begin();    //æ¤­åœ†æŒ‡é’ˆ
+	for (contours_it = contours.begin(); contours_it != contours.end();)    //it++è¦å†™åˆ°foré‡Œé¢ï¼Œå¦åˆ™ä¸èƒ½åˆ é™¤è¿ç»­å€¼
 	{
 		//if ((*minEllipse_it).size.width < IM_SIZE || (*roundness_it) < IM_ROUNDNESS)
 		if ((*minEllipse_it).size.width < IM_SIZE && (*minEllipse_it).size.height < IM_SIZE)
@@ -70,18 +70,18 @@ Mat segmentation::segment(string im_name, Mat &im_gray, Mat &im_dst, vector<Rota
 		}
 	}
 
-	//»­Í¼
-	Mat drawing = Mat::zeros(im_dst.size(), CV_8UC3);   //ÖØ»æÒ»¸öÈıÍ¨µÀµÄ£¬±³¾°ÎªºÚÉ«µÄÍ¼
+	//ç”»å›¾
+	Mat drawing = Mat::zeros(im_dst.size(), CV_8UC3);   //é‡ç»˜ä¸€ä¸ªä¸‰é€šé“çš„ï¼ŒèƒŒæ™¯ä¸ºé»‘è‰²çš„å›¾
 	for (int i = 0; i< contours.size(); i++)
 	{
-		Scalar color_R = Scalar(0, 0, 255);
+		Scalar color_R = Scalar(0, 255, 255);
 		Scalar color = Scalar(255, 0, 0);
 		drawContours(drawing, contours, i, color_R, 1, 8, vector<Vec4i>(), 0, Point());
 		ellipse(drawing, im_minEllipse[i], color, 1, 8);
 	//	cout << (i + 1) << im_minEllipse[i].center << "   minor axis:  " << setprecision(6) << im_minEllipse[i].size.width << "  long axis:  " << setprecision(6) << im_minEllipse[i].size.height << "  roundness:" << setprecision(6) << im_roundness[i] << endl;
 	}
 	//cout << endl << endl;
-	/// ÔÚ´°ÌåÖĞÏÔÊ¾½á¹û
+	/// åœ¨çª—ä½“ä¸­æ˜¾ç¤ºç»“æœ
 	//namedWindow(im_name, WINDOW_AUTOSIZE);
 	//imshow(im_name, drawing);
 	return drawing;
