@@ -1,5 +1,5 @@
 #Zeyi Hou
-# object tracking入门练习
+# object tracking
 
 
 1、Otsu_threshold.cpp：大津法，自适应阈值分割
